@@ -1,0 +1,27 @@
+#!/bin/sh
+
+
+SCRIPT_ORIGINAL_DIR=$(dirname $(realpath "$0"))
+
+HEADER_TEMPLATE=$SCRIPT_ORIGINAL_DIR"/header_template.hpp"
+
+TMP_FILE_NAME="$(pwd)/__temp_cp_adig15.cpp"
+TMP_OUT_NAME="${TMP_FILE_NAME%-.cpp}_a.out"
+
+
+
+# Clean if already existing, else that maybe treated as newest file
+rm -f "${TMP_FILE_NAME}" "${TMP_OUT_NAME}"
+
+
+NEWEST_FILE_NAME="$(pwd)/$(ls *.cpp -t1 | head -n1)"
+
+# Create a file with proper header and include
+cat "${HEADER_TEMPLATE}" "${NEWEST_FILE_NAME}" > "${TMP_FILE_NAME}" || exit 1
+
+g++ -g "${TMP_FILE_NAME}" -o "${TMP_OUT_NAME}"
+
+# Start gdb, with a breakpoint set at main() function
+gdb "${TMP_OUT_NAME}" -ex "b main" -ex "r"
+
+rm "${TMP_FILE_NAME}" "${TMP_OUT_NAME}"
